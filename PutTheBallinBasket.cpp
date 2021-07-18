@@ -3,18 +3,14 @@
 #include <cstdlib>
 #include <ctime>
 #include <algorithm>
-#include <vector>
 #include <fstream>
 
 using namespace std;
-
-
 
 class Player {
 	private:
 	char playerName[30];
 	int score;
-	int rank;
 	public:
 	Player(){
 	}
@@ -63,7 +59,7 @@ class Player {
 bool compare(Player p1,Player p2);
 class Game {
 	int participants;
-	vector<Player> P;
+	Player P[10];
 	public:
 	void getGameInfo(){
 		cout<<"\n\t--------------------------------------------------";
@@ -74,8 +70,7 @@ class Game {
 		for(int i=0;i<participants;i++){
 			cout<<"\n\tEnter the Player "<<i+1<<" Name : ";
 			cin>>name;
-			p.getPlayer(name,i+1);
-			P.push_back(p);
+			P[i].getPlayer(name,i+1);
 		}
 		cout<<"\t--------------------------------------------------\n";
 
@@ -83,8 +78,12 @@ class Game {
 	int getParticipants(){
 		return participants;
 	}
+	void getPlayers(){
+		for(int i=0;i<participants;i++){
+			P[i].getPlayerName();
+		}
+	}
 	void startGame(){
-		P.clear();
 		getGameInfo();
 		int force;
 		for(int j=0;j<3;j++){
@@ -106,28 +105,20 @@ class Game {
 			}
 			}
 		}
-		sort(P.begin(),P.end(),compare);
+		sort(P,P+participants,compare);
 		displayScoreboard();
 		}
-		fstream outf;
-			for(int i=0;i<P.size();i++){
-			cout<<P[i].getPlayerName();
-		}
-
-
-		outf.open("History.txt",ios::app|ios::out);
-		outf.write((char *) &(*(this)),sizeof(*(this)));
-
-		for(int i=0;i<P.size();i++){
-			cout<<P[i].getPlayerName();
-		}
+		ofstream outf;
+		outf.open("History.dat",ios::app);
+		outf.write((char*)this,sizeof(*(this)));
 		outf.close();
-
+	
 
 
 	}
 	void rules();
 	void displayScoreboard();
+	void showHistory();
      
 };
 
@@ -148,7 +139,7 @@ void Game :: displayScoreboard(){
 	cout<<"    * *    *  * **   *    *  * *  * *  * **   *  *\n";
 	cout<<" **** **** **** **** **** **** **** *  * **** ****\n";
 	int flag = 0;
-	for(int i=0;i<P.size();i++){
+	for(int i=0;i<participants;i++){
 		if(flag==0){
 			cout<<"\n===================================================================";
 			cout<<"\n\tPosition\t\tPlayer Name\t\t Score\n";
@@ -169,32 +160,25 @@ void Game::rules(){
     cout << "\t4. If ball missed Basket, Player gets 0 Points \n\n";
 }
 
-void start(){
-		
-	
-}
 
-void  showHistory(){
+void Game :: showHistory(){
 	ifstream fin;
-	fin.open("History.txt");
-	Game g1;
-	vector<Game> G;
+	fin.open("History.dat");
+	Game G[100];
 
 	cout<<"\n==========================================\n";
 	cout<<"\t\tHistory\n";
 	cout<<"==========================================\n";
 	fin.seekg(0,ios::end);
 
-	int c = fin.tellg()/sizeof(g1);
+	int c = fin.tellg()/sizeof(*(this));
 	cout<<c<<endl;
 	fin.seekg(0,ios::beg);
 	for(int i=0;i<c;i++){
-		fin.read((char*)&g1,sizeof(g1));
-		G.push_back(g1);
+		fin.read((char*)&G[i],sizeof(G[i]));
 	}
-	cout<<G.size();
-	if(G.size()>0){
-	for(int i=G.size()-1;i>=0;i--){
+	if(c>0){
+	for(int i=c-1;i>=0;i--){
 		cout<<i+1<<"th Game"<<endl;
 		G[i].displayScoreboard();
 		
@@ -202,14 +186,13 @@ void  showHistory(){
 	}else{
 		cout<<"Empty"<<endl;
 	}
-	G.clear();
 	fin.close();
 }
 
 int main(){
 	cout<<"\n\t\t============================== Put The Ball in Basket ==========================\n"<<endl;
 
-		int o;
+		int o,c;
 		Game g;
 		while(true){
 			cout<<"\n\t1.Start the Game\n\t2.Display Game Rules\n\t3.Show History\n\t4.Exit";
@@ -220,7 +203,7 @@ int main(){
 				       break;
 				case 2:g.rules();
 				       break;
-				case 3:showHistory();
+				case 3:g.showHistory();
 				       break;
 				case 4:exit(0);
 
